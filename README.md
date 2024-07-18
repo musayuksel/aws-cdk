@@ -2,7 +2,8 @@
 
 This is a blank project for CDK development with TypeScript.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+For more info: [cdkworkshop.com](https://cdkworkshop.com/20-typescript/20-create-project/100-cdk-init.html)
+
 
 ## Useful commands
 
