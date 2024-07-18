@@ -23,8 +23,8 @@ exports.handler = async function (event) {
     })
     .promise();
 
-  console.log("downstream response:", JSON.stringify(resp, undefined, 2));
+  console.log("downstream response:", JSON.stringify(response, undefined, 2));
 
   //return response back to upstream caller
-  return JSON.parse(resp.Payload);
+  return JSON.parse(response.Payload);
 };
