@@ -20,6 +20,15 @@ export interface HitCounterProps {
 export class HitCounter extends Construct {
   public readonly handler: lambda.Function; // allows accessing the counter function
 
+  /**
+   * Constructs a **new HitCounter** instance.
+   *
+   * @param scope The scope in which to define this construct.
+   * @param id The ID of the construct.
+   * @param props The properties to configure the HitCounter.
+   *
+   * @throws Error if `readCapacity` is less than 2 or greater than 20.
+   */
   constructor(scope: Construct, id: string, props: HitCounterProps) {
     if (
       props.readCapacity !== undefined &&
