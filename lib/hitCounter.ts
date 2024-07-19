@@ -5,17 +5,35 @@ import { Construct } from "constructs";
 
 export interface HitCounterProps {
   downstream: lambda.IFunction; //function interface for the counter
+
+  /**
+   * The read capacity units for the table
+   *
+   * Must be greater than 2 and lower than 20
+   *
+   * WE can see this text when we HOVER
+   * @default 2
+   */
+  readCapacity?: number;
 }
 
 export class HitCounter extends Construct {
   public readonly handler: lambda.Function; // allows accessing the counter function
 
   constructor(scope: Construct, id: string, props: HitCounterProps) {
+    if (
+      props.readCapacity !== undefined &&
+      (props.readCapacity < 2 || props.readCapacity > 20)
+    ) {
+      throw new Error("readCapacity must be greater than 2 and less than 20");
+    }
+
     super(scope, id);
 
     const table = new dynamodb.Table(this, "HitCounterTable", {
       partitionKey: { name: "path", type: dynamodb.AttributeType.STRING },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+      readCapacity: props.readCapacity ?? 2,
     });
 
     this.handler = new lambda.Function(this, "HitCounterHandlerLambda", {
