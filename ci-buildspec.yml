@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Install phase"
+      - npm ci
+  build:
+    commands:
+      - echo "Build phase"
+      - npm run test
+      - npm run build
+    artifacts:
+      files:
+        - 'dist/**/*'
+      name: 'my-app'
+  
