@@ -13,5 +13,5 @@ phases:
     artifacts:
       files:
         - 'dist/**/*'
-      name: 'BuildOutput'
+      name: BuildOutput
   
