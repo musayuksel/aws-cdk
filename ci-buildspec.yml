@@ -10,9 +10,10 @@ phases:
       - echo "Build phase"
       - npm run test
       - npm run build
+       - ls -la dist # Debugging: List contents of dist
     artifacts:
       files:
-        - 'dist/**/*'
+        - '**/*'
       name: BuildOutput
       base-directory: dist
   
