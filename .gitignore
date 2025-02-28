@@ -4,3 +4,5 @@ dist/
 .cdk.staging
 cdk.out
 out/
+coverage/
+.DS_Store

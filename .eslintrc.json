@@ -1,0 +1,30 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "prettier"],
+  "extends": ["eslint:recommended", "standard-with-typescript", "prettier"],
+  "parserOptions": {
+    "project": "./tsconfig.eslint.json"
+  },
+  "rules": {
+    "prettier/prettier": "error"
+  },
+  "env": {
+    "jest": true
+  },
+  "overrides": [
+    {
+      "files": ["test/**/*.ts"],
+      "rules": {
+        "@typescript-eslint/prefer-ts-expect-error": "off"
+      }
+    },
+    {
+      "files": ["**/*.ts"],
+      "rules": {
+        "@typescript-eslint/restrict-template-expressions": "off"
+      }
+    }
+  ],
+  "ignorePatterns": ["scripts/**/*.ts", "cloudformation/**/*.ts"]
+}
