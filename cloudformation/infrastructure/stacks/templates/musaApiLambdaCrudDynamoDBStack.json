@@ -106,7 +106,7 @@
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
           },
-          "S3Key": "7c190deee822efb2bed19a4ba341d0e00133c8854eabf4fd501a72ca09916909.zip"
+          "S3Key": "9a9e99bc7cc98f00ff97c48fea3de68383bc952065ad4fd7d9b32876c3533f64.zip"
         },
         "Environment": {
           "Variables": {
@@ -116,7 +116,7 @@
             }
           }
         },
-        "Handler": "index.handler",
+        "Handler": "index.getUsersHandler",
         "Role": {
           "Fn::GetAtt": [
             "GetAllItemsFunctionServiceRole",

@@ -45,7 +45,8 @@ export class MusaApiLambdaCrudDynamoDBStack extends Stack {
 
     // Create a Lambda function for each of the CRUD operations
     const getAllItemsLambda = new NodejsFunction(this, 'getAllItemsFunction', {
-      entry: join(__dirname, '../src', 'getUsers.ts'),
+      entry: join(__dirname, '../src', 'index.ts'),
+      handler: 'getUsersHandler',
       ...nodeJsFunctionProps
     })
 
