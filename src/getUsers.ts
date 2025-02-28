@@ -1,8 +1,12 @@
 import { type APIGatewayProxyEvent } from 'aws-lambda'
+import { Logger } from '@aws-lambda-powertools/logger'
+
+const logger = new Logger()
 
 export const handler = async (event: APIGatewayProxyEvent) => {
   // Your implementation logic
   console.log(event, `>>>>>>>>>>>event`)
+  logger.info('Processing getUsers request', { event })
   return {
     statusCode: 200,
     headers: {
