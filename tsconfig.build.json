@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/mocks/*.ts",
+    "**/jest.config.ts",
+    "node_modules",
+    "dist",
+    "core",
+    "jestSetEnvVars.js",
+    "jestSetEnvVars.ts",
+    "**/cloudformation.ts",
+    "Invoke.ts",
+    "api-gateway.ts",
+    "dns.ts",
+    "logs.ts",
+    "main.ts"
+  ]
+}
