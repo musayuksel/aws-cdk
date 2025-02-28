@@ -1,5 +1,5 @@
-import { type DynamoDBStreamEvent, type Context } from 'aws-lambda'
+import { type Context, type APIGatewayProxyEvent, type APIGatewayProxyResult } from 'aws-lambda'
 
 export interface LambdaInterface {
-  handler: (event: DynamoDBStreamEvent, context: Context) => Promise<{ message: string }>
+  handler: (event: APIGatewayProxyEvent, context: Context) => Promise<APIGatewayProxyResult>
 }

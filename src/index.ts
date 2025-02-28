@@ -1,6 +1,13 @@
-// import { TriggerStateNotifier } from './TriggerStateNotifier'
-// const triggerStateNotifier = new TriggerStateNotifier()
-// export const handler = triggerStateNotifier.handler
+// import { GetUsers } from './getUsers'
+// import { CreateUser } from './createUser'
 
-// Import the handlers from your two new files
-// Import and re-export from the appropriate file
+// const getUsers = new GetUsers()
+// const createUser = new CreateUser()
+
+// export const getUsersHandler = getUsers.handler
+// export const createUserHandler = createUser.handler
+
+import { handler as getUsersHandler } from './getUsers'
+import { handler as createUserHandler } from './createUser'
+
+export { getUsersHandler, createUserHandler }
