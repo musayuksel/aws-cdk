@@ -5,14 +5,22 @@
       "Properties": {
         "AttributeDefinitions": [
           {
-            "AttributeName": "itemId",
+            "AttributeName": "PK",
+            "AttributeType": "S"
+          },
+          {
+            "AttributeName": "SK",
             "AttributeType": "S"
           }
         ],
         "KeySchema": [
           {
-            "AttributeName": "itemId",
+            "AttributeName": "PK",
             "KeyType": "HASH"
+          },
+          {
+            "AttributeName": "SK",
+            "KeyType": "RANGE"
           }
         ],
         "ProvisionedThroughput": {
@@ -106,7 +114,7 @@
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
           },
-          "S3Key": "9a9e99bc7cc98f00ff97c48fea3de68383bc952065ad4fd7d9b32876c3533f64.zip"
+          "S3Key": "84f3ef373cf1698d5b0c78651a1d20bca9fe203961c44bb1c06db08705eb0008.zip"
         },
         "Environment": {
           "Variables": {
@@ -116,7 +124,7 @@
             }
           }
         },
-        "Handler": "index.getUsersHandler",
+        "Handler": "index.getCategoriesHandler",
         "Role": {
           "Fn::GetAtt": [
             "GetAllItemsFunctionServiceRole",
@@ -136,7 +144,7 @@
         "Name": "MusaTest Items Service"
       }
     },
-    "ItemsApiDeployment70dc03f3edd6e5d8af37b0dae37fe5d9": {
+    "ItemsApiDeployment9d7b3cc7f4414cd6914d2f1dae763412": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "Description": "Automatically created by the RestApi construct",
@@ -145,16 +153,16 @@
         }
       },
       "DependsOn": [
-        "ItemsApiDefaultItemsGET",
-        "ItemsApiDefaultItemsOPTIONS",
-        "ItemsApiDefaultItems"
+        "ItemsApiDefaultCategoriesGET",
+        "ItemsApiDefaultCategoriesOPTIONS",
+        "ItemsApiDefaultCategories"
       ]
     },
     "ItemsApiDeploymentStageprod": {
       "Type": "AWS::ApiGateway::Stage",
       "Properties": {
         "DeploymentId": {
-          "Ref": "ItemsApiDeployment70dc03f3edd6e5d8af37b0dae37fe5d9"
+          "Ref": "ItemsApiDeployment9d7b3cc7f4414cd6914d2f1dae763412"
         },
         "RestApiId": {
           "Ref": "ItemsApi"
@@ -162,7 +170,7 @@
         "StageName": "prod"
       }
     },
-    "ItemsApiDefaultItems": {
+    "ItemsApiDefaultCategories": {
       "Type": "AWS::ApiGateway::Resource",
       "Properties": {
         "ParentId": {
@@ -171,13 +179,13 @@
             "RootResourceId"
           ]
         },
-        "PathPart": "items",
+        "PathPart": "categories",
         "RestApiId": {
           "Ref": "ItemsApi"
         }
       }
     },
-    "ItemsApiDefaultItemsGETApiPermissionmusaApiLambdaCrudDynamoDBStackitemsApi8A54D1BBGETitems": {
+    "ItemsApiDefaultCategoriesGETApiPermissionmusaApiLambdaCrudDynamoDBStackitemsApi8A54D1BBGETcategories": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "Action": "lambda:InvokeFunction",
@@ -212,13 +220,13 @@
               {
                 "Ref": "ItemsApiDeploymentStageprod"
               },
-              "/GET/items"
+              "/GET/categories"
             ]
           ]
         }
       }
     },
-    "ItemsApiDefaultItemsGETApiPermissionTestmusaApiLambdaCrudDynamoDBStackitemsApi8A54D1BBGETitems": {
+    "ItemsApiDefaultCategoriesGETApiPermissionTestmusaApiLambdaCrudDynamoDBStackitemsApi8A54D1BBGETcategories": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "Action": "lambda:InvokeFunction",
@@ -249,13 +257,13 @@
               {
                 "Ref": "ItemsApi"
               },
-              "/test-invoke-stage/GET/items"
+              "/test-invoke-stage/GET/categories"
             ]
           ]
         }
       }
     },
-    "ItemsApiDefaultItemsGET": {
+    "ItemsApiDefaultCategoriesGET": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "AuthorizationType": "NONE",
@@ -288,14 +296,14 @@
           }
         },
         "ResourceId": {
-          "Ref": "ItemsApiDefaultItems"
+          "Ref": "ItemsApiDefaultCategories"
         },
         "RestApiId": {
           "Ref": "ItemsApi"
         }
       }
     },
-    "ItemsApiDefaultItemsOPTIONS": {
+    "ItemsApiDefaultCategoriesOPTIONS": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "AuthorizationType": "NONE",
@@ -330,7 +338,7 @@
           }
         ],
         "ResourceId": {
-          "Ref": "ItemsApiDefaultItems"
+          "Ref": "ItemsApiDefaultCategories"
         },
         "RestApiId": {
           "Ref": "ItemsApi"

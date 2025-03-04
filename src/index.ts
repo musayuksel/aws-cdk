@@ -1,5 +1,5 @@
-import { GetUsers } from './getUsers'
+import { GetCategories } from './getCategories'
 
-const getUsers = new GetUsers()
+const getCategories = new GetCategories()
 
-export const getUsersHandler = getUsers.handler
+export const getCategoriesHandler = getCategories.handler

@@ -13,7 +13,11 @@ export class MusaApiLambdaCrudDynamoDBStack extends Stack {
     const dynamoTable = new Table(this, 'MusaTestItems', {
       tableName: 'MusaTestItemsTable',
       partitionKey: {
-        name: 'itemId',
+        name: 'PK', // Changed to PK
+        type: AttributeType.STRING
+      },
+      sortKey: {
+        name: 'SK', // Added Sort Key
         type: AttributeType.STRING
       },
       billingMode: BillingMode.PROVISIONED,
@@ -44,19 +48,19 @@ export class MusaApiLambdaCrudDynamoDBStack extends Stack {
     }
 
     // Create a Lambda function for each of the CRUD operations
-    const getAllItemsLambda = new NodejsFunction(this, 'getAllItemsFunction', {
+    const getAllCategoriesLambda = new NodejsFunction(this, 'getAllItemsFunction', {
       entry: join(__dirname, '../src', 'index.ts'),
-      handler: 'getUsersHandler',
+      handler: 'getCategoriesHandler',
       ...nodeJsFunctionProps
     })
 
     // Grant the Lambda function read access to the DynamoDB table
 
-    dynamoTable.grantReadWriteData(getAllItemsLambda)
+    dynamoTable.grantReadWriteData(getAllCategoriesLambda)
 
     // Integrate the Lambda functions with the API Gateway resource
 
-    const getAllItemsIntegration = new LambdaIntegration(getAllItemsLambda)
+    const getAllItemsIntegration = new LambdaIntegration(getAllCategoriesLambda)
 
     // Create an API Gateway resource for each of the CRUD operations
     const api = new RestApi(this, 'itemsApi', {
@@ -65,11 +69,11 @@ export class MusaApiLambdaCrudDynamoDBStack extends Stack {
       // binaryMediaTypes: ["*/*"],
     })
 
-    const items = api.root.addResource('items') // GET /items
+    const categories = api.root.addResource('categories') // GET /categories
 
-    items.addMethod('GET', getAllItemsIntegration)
-    // items.addMethod('POST', createOneIntegration)
-    addCorsOptions(items)
+    categories.addMethod('GET', getAllItemsIntegration)
+    // categories.addMethod('POST', createOneIntegration)
+    addCorsOptions(categories)
   }
   protected allocateLogicalId(cfnElement: CfnElement): string {
     const scopes = cfnElement.node.scopes
