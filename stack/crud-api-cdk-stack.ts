@@ -53,14 +53,18 @@ export class MusaApiLambdaCrudDynamoDBStack extends Stack {
       handler: 'getCategoriesHandler',
       ...nodeJsFunctionProps
     })
-
+    const getExamQuestionsLambda = new NodejsFunction(this, 'getExamQuestionsFunction', {
+      entry: join(__dirname, '../src', 'index.ts'),
+      handler: 'getExamQuestionsHandler',
+      ...nodeJsFunctionProps
+    })
     // Grant the Lambda function read access to the DynamoDB table
-
     dynamoTable.grantReadWriteData(getAllCategoriesLambda)
+    dynamoTable.grantReadWriteData(getExamQuestionsLambda)
 
     // Integrate the Lambda functions with the API Gateway resource
-
     const getAllItemsIntegration = new LambdaIntegration(getAllCategoriesLambda)
+    const getExamQuestionsIntegration = new LambdaIntegration(getExamQuestionsLambda)
 
     // Create an API Gateway resource for each of the CRUD operations
     const api = new RestApi(this, 'itemsApi', {
@@ -72,8 +76,11 @@ export class MusaApiLambdaCrudDynamoDBStack extends Stack {
     const categories = api.root.addResource('categories') // GET /categories
 
     categories.addMethod('GET', getAllItemsIntegration)
-    // categories.addMethod('POST', createOneIntegration)
     addCorsOptions(categories)
+
+    const singleCategory = categories.addResource('{id}') // GET /categories/{id}
+    singleCategory.addMethod('GET', getExamQuestionsIntegration)
+    addCorsOptions(singleCategory)
   }
   protected allocateLogicalId(cfnElement: CfnElement): string {
     const scopes = cfnElement.node.scopes
