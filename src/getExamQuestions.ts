@@ -5,6 +5,7 @@ import { DynamoDB } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocument, ScanCommand } from '@aws-sdk/lib-dynamodb'
 import { type LambdaInterface } from './LambdaInterface'
 import { type APIGatewayProxyEvent, type Context, type APIGatewayProxyResult } from 'aws-lambda'
+import { formatResponse } from './formatResponse'
 
 const logger = new Logger()
 const metrics = new Metrics()
@@ -48,20 +49,13 @@ export class GetExamQuestions implements LambdaInterface {
 
       const questions = await db.send(scanCommand)
 
-      const response = {
-        statusCode: 200,
-        body: JSON.stringify({ questions: questions.Items })
-      }
-
       metrics.addMetric('GetExamQuestionsSuccess', MetricUnit.Count, 1)
-      return response
+      return formatResponse(200, { questions: questions.Items })
     } catch (error) {
       logger.error('Error processing getExamQuestions request', { error })
       metrics.addMetric('GetExamQuestionsError', MetricUnit.Count, 1)
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ message: 'Internal Server Error' })
-      }
+
+      return formatResponse(500, { message: 'Internal Server Error' })
     }
   }
 }
