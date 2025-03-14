@@ -5,6 +5,7 @@ import { type APIGatewayProxyEvent, type Context, type APIGatewayProxyResult } f
 import { type LambdaInterface } from './LambdaInterface'
 import { DynamoDBDocument, ScanCommand } from '@aws-sdk/lib-dynamodb'
 import { DynamoDB } from '@aws-sdk/client-dynamodb'
+import { formatResponse } from './formatResponse'
 
 const logger = new Logger()
 const metrics = new Metrics()
@@ -39,21 +40,27 @@ export class GetCategories implements LambdaInterface {
       })
 
       const categories = await db.send(scanCommand)
-
-      const response = {
-        statusCode: 200,
-        body: JSON.stringify({ categories: categories.Items })
-      }
+      // const response = {
+      //   statusCode: 200,
+      //   headers: {
+      //     'Access-Control-Allow-Origin': '*', // Update to match frontend URL if needed
+      //     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      //     'Access-Control-Allow-Headers': 'Authorization, Content-Type'
+      //   },
+      //   body: JSON.stringify({ categories: categories.Items })
+      // }
 
       metrics.addMetric('GetCategoriesSuccess', MetricUnit.Count, 1)
-      return response
+      return formatResponse(200, { categories: categories.Items })
+      // return response
     } catch (error) {
       logger.error('Error processing getCategories request', { error })
       metrics.addMetric('GetCategoriesError', MetricUnit.Count, 1)
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ message: 'Internal Server Error' })
-      }
+      // return {
+      //   statusCode: 500,
+      //   body: JSON.stringify({ message: 'Internal Server Error' })
+      // }
+      return formatResponse(500, { message: 'Internal Server Error' })
     }
   }
 }

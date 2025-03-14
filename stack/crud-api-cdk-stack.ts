@@ -1,10 +1,20 @@
-import { IResource, LambdaIntegration, MockIntegration, PassthroughBehavior, RestApi } from 'aws-cdk-lib/aws-apigateway'
+import {
+  AuthorizationType,
+  CognitoUserPoolsAuthorizer,
+  Cors,
+  IResource,
+  LambdaIntegration,
+  MockIntegration,
+  PassthroughBehavior,
+  RestApi
+} from 'aws-cdk-lib/aws-apigateway'
 import { AttributeType, Table, BillingMode } from 'aws-cdk-lib/aws-dynamodb'
 import { Runtime } from 'aws-cdk-lib/aws-lambda'
-import { App, Stack, RemovalPolicy, CfnElement } from 'aws-cdk-lib'
+import { App, Stack, RemovalPolicy, CfnElement, CfnOutput } from 'aws-cdk-lib'
 import { NodejsFunction, NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-nodejs'
 import { join } from 'path'
 import { IConstruct } from 'constructs'
+import { AccountRecovery, UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito'
 
 export class MusaApiLambdaCrudDynamoDBStack extends Stack {
   constructor(app: App, id: string) {
@@ -32,6 +42,43 @@ export class MusaApiLambdaCrudDynamoDBStack extends Stack {
       removalPolicy: RemovalPolicy.DESTROY // NOT recommended for production code
     })
 
+    // Cognito User Pool
+    const userPool = new UserPool(this, 'MusaUserPool', {
+      userPoolName: 'MusaUserPool',
+      signInCaseSensitive: false, // Do not differentiate email case
+      selfSignUpEnabled: true, // Allow users to sign up themselves
+      signInAliases: { email: true }, // Set email as an alias
+      autoVerify: { email: true }, // Automatically verify email addresses
+      standardAttributes: {
+        email: {
+          required: true,
+          mutable: false
+        }
+      },
+      userVerification: {
+        emailSubject: 'Verify your email for our awesome app!',
+        emailBody: 'Hello {username}, Thanks for signing up to our awesome app! Your verification code is {####}'
+      },
+      accountRecovery: AccountRecovery.EMAIL_ONLY,
+      removalPolicy: RemovalPolicy.DESTROY // NOT recommended for production code
+    })
+
+    // Cognito Client
+    const userPoolClient = new UserPoolClient(this, 'MusaUserPoolClient', {
+      userPool,
+      authFlows: {
+        userPassword: true,
+        userSrp: true
+      }
+    })
+
+    // Create the Cognito Authorizer
+    const authorizer = new CognitoUserPoolsAuthorizer(this, 'MusaApiAuthorizer', {
+      cognitoUserPools: [userPool],
+      authorizerName: 'musa-user-pool-authorizer',
+      identitySource: 'method.request.header.Authorization'
+    })
+
     const nodeJsFunctionProps: NodejsFunctionProps = {
       bundling: {
         externalModules: [
@@ -42,7 +89,9 @@ export class MusaApiLambdaCrudDynamoDBStack extends Stack {
       depsLockFilePath: join(__dirname, '../', 'package-lock.json'),
       environment: {
         PRIMARY_KEY: 'itemId',
-        TABLE_NAME: dynamoTable.tableName
+        TABLE_NAME: dynamoTable.tableName,
+        USER_POOL_ID: userPool.userPoolId, // Pass User Pool ID to Lambda
+        USER_POOL_CLIENT_ID: userPoolClient.userPoolClientId // Pass Client ID to Lambda
       },
       runtime: Runtime.NODEJS_20_X
     }
@@ -68,19 +117,59 @@ export class MusaApiLambdaCrudDynamoDBStack extends Stack {
 
     // Create an API Gateway resource for each of the CRUD operations
     const api = new RestApi(this, 'itemsApi', {
-      restApiName: 'MusaTest Items Service'
+      restApiName: 'MusaTest Items Service',
+      defaultCorsPreflightOptions: {
+        allowOrigins: Cors.ALL_ORIGINS, // Allow all origins
+        allowMethods: Cors.ALL_METHODS, // Allow all methods (GET, POST, etc.)
+        allowHeaders: [
+          'Content-Type',
+          'X-Amz-Date',
+          'Authorization',
+          'X-Api-Key',
+          'X-Amz-Security-Token',
+          'X-Amz-User-Agent'
+        ]
+        // allowHeaders: Cors.DEFAULT_HEADERS // Allow default headers (Authorization, Content-Type, etc.)
+      }
       // In case you want to manage binary types, uncomment the following
       // binaryMediaTypes: ["*/*"],
     })
 
     const categories = api.root.addResource('categories') // GET /categories
 
-    categories.addMethod('GET', getAllItemsIntegration)
-    addCorsOptions(categories)
+    categories.addMethod('GET', getAllItemsIntegration, {
+      authorizer: authorizer,
+      authorizationType: AuthorizationType.COGNITO
+    })
+    // addCorsOptions(categories)
 
     const singleCategory = categories.addResource('{id}') // GET /categories/{id}
-    singleCategory.addMethod('GET', getExamQuestionsIntegration)
-    addCorsOptions(singleCategory)
+    singleCategory.addMethod('GET', getExamQuestionsIntegration, {
+      authorizer: authorizer,
+      authorizationType: AuthorizationType.COGNITO
+    })
+    // addCorsOptions(singleCategory)
+
+    // Output the important values
+    new CfnOutput(this, 'UserPoolId', {
+      value: userPool.userPoolId,
+      description: 'The ID of the Cognito User Pool'
+    })
+
+    new CfnOutput(this, 'UserPoolClientId', {
+      value: userPoolClient.userPoolClientId,
+      description: 'The ID of the Cognito User Pool Client'
+    })
+
+    new CfnOutput(this, 'Region', {
+      value: this.region,
+      description: 'The region the stack is deployed to'
+    })
+
+    new CfnOutput(this, 'ApiUrl', {
+      value: api.url,
+      description: 'The URL of the API Gateway'
+    })
   }
   protected allocateLogicalId(cfnElement: CfnElement): string {
     const scopes = cfnElement.node.scopes
@@ -131,6 +220,7 @@ export function addCorsOptions(apiResource: IResource) {
       }
     }),
     {
+      authorizationType: AuthorizationType.NONE,
       methodResponses: [
         {
           statusCode: '200',
