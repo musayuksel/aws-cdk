@@ -40,26 +40,12 @@ export class GetCategories implements LambdaInterface {
       })
 
       const categories = await db.send(scanCommand)
-      // const response = {
-      //   statusCode: 200,
-      //   headers: {
-      //     'Access-Control-Allow-Origin': '*', // Update to match frontend URL if needed
-      //     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      //     'Access-Control-Allow-Headers': 'Authorization, Content-Type'
-      //   },
-      //   body: JSON.stringify({ categories: categories.Items })
-      // }
 
       metrics.addMetric('GetCategoriesSuccess', MetricUnit.Count, 1)
       return formatResponse(200, { categories: categories.Items })
-      // return response
     } catch (error) {
       logger.error('Error processing getCategories request', { error })
       metrics.addMetric('GetCategoriesError', MetricUnit.Count, 1)
-      // return {
-      //   statusCode: 500,
-      //   body: JSON.stringify({ message: 'Internal Server Error' })
-      // }
       return formatResponse(500, { message: 'Internal Server Error' })
     }
   }

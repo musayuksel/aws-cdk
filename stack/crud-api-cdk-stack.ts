@@ -57,7 +57,7 @@ export class MusaApiLambdaCrudDynamoDBStack extends Stack {
       },
       userVerification: {
         emailSubject: 'Verify your email for our awesome app!',
-        emailBody: 'Hello {username}, Thanks for signing up to our awesome app! Your verification code is {####}'
+        emailBody: 'Hi there, Thanks for signing up to our awesome app! Your verification code is {####}'
       },
       accountRecovery: AccountRecovery.EMAIL_ONLY,
       removalPolicy: RemovalPolicy.DESTROY // NOT recommended for production code
@@ -107,13 +107,21 @@ export class MusaApiLambdaCrudDynamoDBStack extends Stack {
       handler: 'getExamQuestionsHandler',
       ...nodeJsFunctionProps
     })
+
+    const postCategoryLambda = new NodejsFunction(this, 'postCategoryFunction', {
+      entry: join(__dirname, '../src', 'index.ts'),
+      handler: 'postCategoryHandler',
+      ...nodeJsFunctionProps
+    })
     // Grant the Lambda function read access to the DynamoDB table
     dynamoTable.grantReadWriteData(getAllCategoriesLambda)
     dynamoTable.grantReadWriteData(getExamQuestionsLambda)
+    dynamoTable.grantReadWriteData(postCategoryLambda)
 
     // Integrate the Lambda functions with the API Gateway resource
     const getAllItemsIntegration = new LambdaIntegration(getAllCategoriesLambda)
     const getExamQuestionsIntegration = new LambdaIntegration(getExamQuestionsLambda)
+    const postCategoryIntegration = new LambdaIntegration(postCategoryLambda)
 
     // Create an API Gateway resource for each of the CRUD operations
     const api = new RestApi(this, 'itemsApi', {
@@ -142,6 +150,10 @@ export class MusaApiLambdaCrudDynamoDBStack extends Stack {
       authorizationType: AuthorizationType.COGNITO
     })
     // addCorsOptions(categories)
+    categories.addMethod('POST', postCategoryIntegration, {
+      authorizer: authorizer,
+      authorizationType: AuthorizationType.COGNITO
+    })
 
     const singleCategory = categories.addResource('{id}') // GET /categories/{id}
     singleCategory.addMethod('GET', getExamQuestionsIntegration, {
