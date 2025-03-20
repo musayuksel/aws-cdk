@@ -35,14 +35,12 @@ export class CreateCategory implements LambdaInterface {
       // No actual database operations are performed
 
       metrics.addMetric('CreateCategorySuccess', MetricUnit.Count, 1)
-      return formatResponse(201, {
-        message: 'Category created successfully',
-        data: requestBody
-      })
+
+      return formatResponse(201, requestBody, 'Category created successfully')
     } catch (error) {
       logger.error('Error processing createCategory request', { error })
       metrics.addMetric('CreateCategoryError', MetricUnit.Count, 1)
-      return formatResponse(500, { message: 'Internal Server Error' })
+      return formatResponse(500, null, 'Internal Server Error', false)
     }
   }
 }

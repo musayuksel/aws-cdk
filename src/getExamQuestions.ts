@@ -50,12 +50,11 @@ export class GetExamQuestions implements LambdaInterface {
       const questions = await db.send(scanCommand)
 
       metrics.addMetric('GetExamQuestionsSuccess', MetricUnit.Count, 1)
-      return formatResponse(200, { questions: questions.Items })
+      return formatResponse(200, questions.Items, 'Questions retrieved successfully')
     } catch (error) {
       logger.error('Error processing getExamQuestions request', { error })
       metrics.addMetric('GetExamQuestionsError', MetricUnit.Count, 1)
-
-      return formatResponse(500, { message: 'Internal Server Error' })
+      return formatResponse(500, null, 'Internal Server Error', false)
     }
   }
 }

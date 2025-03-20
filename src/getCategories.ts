@@ -42,11 +42,11 @@ export class GetCategories implements LambdaInterface {
       const categories = await db.send(scanCommand)
 
       metrics.addMetric('GetCategoriesSuccess', MetricUnit.Count, 1)
-      return formatResponse(200, { categories: categories.Items })
+      return formatResponse(200, categories.Items, 'Categories retrieved successfully')
     } catch (error) {
       logger.error('Error processing getCategories request', { error })
       metrics.addMetric('GetCategoriesError', MetricUnit.Count, 1)
-      return formatResponse(500, { message: 'Internal Server Error' })
+      return formatResponse(500, null, 'Internal Server Error', false)
     }
   }
 }
