@@ -32,6 +32,100 @@
       "UpdateReplacePolicy": "Delete",
       "DeletionPolicy": "Delete"
     },
+    "MusaUserPool": {
+      "Type": "AWS::Cognito::UserPool",
+      "Properties": {
+        "AccountRecoverySetting": {
+          "RecoveryMechanisms": [
+            {
+              "Name": "verified_email",
+              "Priority": 1
+            }
+          ]
+        },
+        "AdminCreateUserConfig": {
+          "AllowAdminCreateUserOnly": false
+        },
+        "AutoVerifiedAttributes": [
+          "email"
+        ],
+        "EmailVerificationMessage": "Hello {username}, Thanks for signing up to our awesome app! Your verification code is {####}",
+        "EmailVerificationSubject": "Verify your email for our awesome app!",
+        "Schema": [
+          {
+            "Mutable": false,
+            "Name": "email",
+            "Required": true
+          }
+        ],
+        "SmsVerificationMessage": "The verification code to your new account is {####}",
+        "UserPoolName": "MusaUserPool",
+        "UsernameAttributes": [
+          "email"
+        ],
+        "UsernameConfiguration": {
+          "CaseSensitive": false
+        },
+        "VerificationMessageTemplate": {
+          "DefaultEmailOption": "CONFIRM_WITH_CODE",
+          "EmailMessage": "Hello {username}, Thanks for signing up to our awesome app! Your verification code is {####}",
+          "EmailSubject": "Verify your email for our awesome app!",
+          "SmsMessage": "The verification code to your new account is {####}"
+        }
+      },
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete"
+    },
+    "MusaUserPoolClient": {
+      "Type": "AWS::Cognito::UserPoolClient",
+      "Properties": {
+        "AllowedOAuthFlows": [
+          "implicit",
+          "code"
+        ],
+        "AllowedOAuthFlowsUserPoolClient": true,
+        "AllowedOAuthScopes": [
+          "profile",
+          "phone",
+          "email",
+          "openid",
+          "aws.cognito.signin.user.admin"
+        ],
+        "CallbackURLs": [
+          "https://example.com"
+        ],
+        "ExplicitAuthFlows": [
+          "ALLOW_USER_PASSWORD_AUTH",
+          "ALLOW_USER_SRP_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH"
+        ],
+        "SupportedIdentityProviders": [
+          "COGNITO"
+        ],
+        "UserPoolId": {
+          "Ref": "MusaUserPool"
+        }
+      }
+    },
+    "MusaApiAuthorizer": {
+      "Type": "AWS::ApiGateway::Authorizer",
+      "Properties": {
+        "IdentitySource": "method.request.header.Authorization",
+        "Name": "musa-user-pool-authorizer",
+        "ProviderARNs": [
+          {
+            "Fn::GetAtt": [
+              "MusaUserPool",
+              "Arn"
+            ]
+          }
+        ],
+        "RestApiId": {
+          "Ref": "ItemsApi"
+        },
+        "Type": "COGNITO_USER_POOLS"
+      }
+    },
     "GetAllItemsFunctionServiceRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -114,13 +208,19 @@
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
           },
-          "S3Key": "e1c20abaedb8c37c30c807fe6b2f780ecefeb3a875f5dd60cb06d22c6a97bbd2.zip"
+          "S3Key": "d609cae54c8bf01a47bb37a5a16787de5cc20847170625cb229150685e6bca5e.zip"
         },
         "Environment": {
           "Variables": {
             "PRIMARY_KEY": "itemId",
             "TABLE_NAME": {
               "Ref": "MusaTestItems"
+            },
+            "USER_POOL_ID": {
+              "Ref": "MusaUserPool"
+            },
+            "USER_POOL_CLIENT_ID": {
+              "Ref": "MusaUserPoolClient"
             }
           }
         },
@@ -220,13 +320,19 @@
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
           },
-          "S3Key": "e1c20abaedb8c37c30c807fe6b2f780ecefeb3a875f5dd60cb06d22c6a97bbd2.zip"
+          "S3Key": "d609cae54c8bf01a47bb37a5a16787de5cc20847170625cb229150685e6bca5e.zip"
         },
         "Environment": {
           "Variables": {
             "PRIMARY_KEY": "itemId",
             "TABLE_NAME": {
               "Ref": "MusaTestItems"
+            },
+            "USER_POOL_ID": {
+              "Ref": "MusaUserPool"
+            },
+            "USER_POOL_CLIENT_ID": {
+              "Ref": "MusaUserPoolClient"
             }
           }
         },
@@ -244,13 +350,125 @@
         "GetExamQuestionsFunctionServiceRole"
       ]
     },
+    "PostCategoryFunctionServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "PostCategoryFunctionServiceRoleDefaultPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "dynamodb:BatchGetItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+                "dynamodb:GetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:PutItem",
+                "dynamodb:Query",
+                "dynamodb:Scan",
+                "dynamodb:UpdateItem"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "MusaTestItems",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Ref": "AWS::NoValue"
+                }
+              ]
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "PostCategoryFunctionServiceRoleDefaultPolicy",
+        "Roles": [
+          {
+            "Ref": "PostCategoryFunctionServiceRole"
+          }
+        ]
+      }
+    },
+    "PostCategoryFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+          },
+          "S3Key": "d609cae54c8bf01a47bb37a5a16787de5cc20847170625cb229150685e6bca5e.zip"
+        },
+        "Environment": {
+          "Variables": {
+            "PRIMARY_KEY": "itemId",
+            "TABLE_NAME": {
+              "Ref": "MusaTestItems"
+            },
+            "USER_POOL_ID": {
+              "Ref": "MusaUserPool"
+            },
+            "USER_POOL_CLIENT_ID": {
+              "Ref": "MusaUserPoolClient"
+            }
+          }
+        },
+        "Handler": "index.postCategoryHandler",
+        "Role": {
+          "Fn::GetAtt": [
+            "PostCategoryFunctionServiceRole",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs20.x"
+      },
+      "DependsOn": [
+        "PostCategoryFunctionServiceRoleDefaultPolicy",
+        "PostCategoryFunctionServiceRole"
+      ]
+    },
     "ItemsApi": {
       "Type": "AWS::ApiGateway::RestApi",
       "Properties": {
         "Name": "MusaTest Items Service"
       }
     },
-    "ItemsApiDeploymentfa7657d963c1581c640da04e7e96d32f": {
+    "ItemsApiDeploymente975f363af0f1056b4ec6c20d9a5b165": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "Description": "Automatically created by the RestApi construct",
@@ -264,19 +482,65 @@
         "ItemsApiDefaultCategoriesid",
         "ItemsApiDefaultCategoriesGET",
         "ItemsApiDefaultCategoriesOPTIONS",
-        "ItemsApiDefaultCategories"
+        "ItemsApiDefaultCategoriesPOST",
+        "ItemsApiDefaultCategories",
+        "ItemsApiDefaultOPTIONS",
+        "MusaApiAuthorizer"
       ]
     },
     "ItemsApiDeploymentStageprod": {
       "Type": "AWS::ApiGateway::Stage",
       "Properties": {
         "DeploymentId": {
-          "Ref": "ItemsApiDeploymentfa7657d963c1581c640da04e7e96d32f"
+          "Ref": "ItemsApiDeploymente975f363af0f1056b4ec6c20d9a5b165"
         },
         "RestApiId": {
           "Ref": "ItemsApi"
         },
         "StageName": "prod"
+      }
+    },
+    "ItemsApiDefaultOPTIONS": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "Integration": {
+          "IntegrationResponses": [
+            {
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+              },
+              "StatusCode": "204"
+            }
+          ],
+          "RequestTemplates": {
+            "application/json": "{ statusCode: 200 }"
+          },
+          "Type": "MOCK"
+        },
+        "MethodResponses": [
+          {
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "StatusCode": "204"
+          }
+        ],
+        "ResourceId": {
+          "Fn::GetAtt": [
+            "ItemsApi",
+            "RootResourceId"
+          ]
+        },
+        "RestApiId": {
+          "Ref": "ItemsApi"
+        }
       }
     },
     "ItemsApiDefaultCategories": {
@@ -289,6 +553,46 @@
           ]
         },
         "PathPart": "categories",
+        "RestApiId": {
+          "Ref": "ItemsApi"
+        }
+      }
+    },
+    "ItemsApiDefaultCategoriesOPTIONS": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "Integration": {
+          "IntegrationResponses": [
+            {
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+              },
+              "StatusCode": "204"
+            }
+          ],
+          "RequestTemplates": {
+            "application/json": "{ statusCode: 200 }"
+          },
+          "Type": "MOCK"
+        },
+        "MethodResponses": [
+          {
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "StatusCode": "204"
+          }
+        ],
+        "ResourceId": {
+          "Ref": "ItemsApiDefaultCategories"
+        },
         "RestApiId": {
           "Ref": "ItemsApi"
         }
@@ -375,7 +679,10 @@
     "ItemsApiDefaultCategoriesGET": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
-        "AuthorizationType": "NONE",
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": {
+          "Ref": "MusaApiAuthorizer"
+        },
         "HttpMethod": "GET",
         "Integration": {
           "IntegrationHttpMethod": "POST",
@@ -412,40 +719,119 @@
         }
       }
     },
-    "ItemsApiDefaultCategoriesOPTIONS": {
+    "ItemsApiDefaultCategoriesPOSTApiPermissionmusaApiLambdaCrudDynamoDBStackitemsApi8A54D1BBPOSTcategories": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "PostCategoryFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ItemsApi"
+              },
+              "/",
+              {
+                "Ref": "ItemsApiDeploymentStageprod"
+              },
+              "/POST/categories"
+            ]
+          ]
+        }
+      }
+    },
+    "ItemsApiDefaultCategoriesPOSTApiPermissionTestmusaApiLambdaCrudDynamoDBStackitemsApi8A54D1BBPOSTcategories": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "PostCategoryFunction",
+            "Arn"
+          ]
+        },
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ItemsApi"
+              },
+              "/test-invoke-stage/POST/categories"
+            ]
+          ]
+        }
+      }
+    },
+    "ItemsApiDefaultCategoriesPOST": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
-        "AuthorizationType": "NONE",
-        "HttpMethod": "OPTIONS",
-        "Integration": {
-          "IntegrationResponses": [
-            {
-              "ResponseParameters": {
-                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
-                "method.response.header.Access-Control-Allow-Credentials": "'false'",
-                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE'"
-              },
-              "StatusCode": "200"
-            }
-          ],
-          "PassthroughBehavior": "NEVER",
-          "RequestTemplates": {
-            "application/json": "{\"statusCode\": 200}"
-          },
-          "Type": "MOCK"
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": {
+          "Ref": "MusaApiAuthorizer"
         },
-        "MethodResponses": [
-          {
-            "ResponseParameters": {
-              "method.response.header.Access-Control-Allow-Headers": true,
-              "method.response.header.Access-Control-Allow-Methods": true,
-              "method.response.header.Access-Control-Allow-Credentials": true,
-              "method.response.header.Access-Control-Allow-Origin": true
-            },
-            "StatusCode": "200"
+        "HttpMethod": "POST",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "PostCategoryFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
           }
-        ],
+        },
         "ResourceId": {
           "Ref": "ItemsApiDefaultCategories"
         },
@@ -461,6 +847,46 @@
           "Ref": "ItemsApiDefaultCategories"
         },
         "PathPart": "{id}",
+        "RestApiId": {
+          "Ref": "ItemsApi"
+        }
+      }
+    },
+    "ItemsApiDefaultCategoriesidOPTIONS": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "HttpMethod": "OPTIONS",
+        "Integration": {
+          "IntegrationResponses": [
+            {
+              "ResponseParameters": {
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+              },
+              "StatusCode": "204"
+            }
+          ],
+          "RequestTemplates": {
+            "application/json": "{ statusCode: 200 }"
+          },
+          "Type": "MOCK"
+        },
+        "MethodResponses": [
+          {
+            "ResponseParameters": {
+              "method.response.header.Access-Control-Allow-Headers": true,
+              "method.response.header.Access-Control-Allow-Origin": true,
+              "method.response.header.Access-Control-Allow-Methods": true
+            },
+            "StatusCode": "204"
+          }
+        ],
+        "ResourceId": {
+          "Ref": "ItemsApiDefaultCategoriesid"
+        },
         "RestApiId": {
           "Ref": "ItemsApi"
         }
@@ -547,7 +973,10 @@
     "ItemsApiDefaultCategoriesidGET": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
-        "AuthorizationType": "NONE",
+        "AuthorizationType": "COGNITO_USER_POOLS",
+        "AuthorizerId": {
+          "Ref": "MusaApiAuthorizer"
+        },
         "HttpMethod": "GET",
         "Integration": {
           "IntegrationHttpMethod": "POST",
@@ -583,52 +1012,55 @@
           "Ref": "ItemsApi"
         }
       }
-    },
-    "ItemsApiDefaultCategoriesidOPTIONS": {
-      "Type": "AWS::ApiGateway::Method",
-      "Properties": {
-        "AuthorizationType": "NONE",
-        "HttpMethod": "OPTIONS",
-        "Integration": {
-          "IntegrationResponses": [
-            {
-              "ResponseParameters": {
-                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
-                "method.response.header.Access-Control-Allow-Origin": "'*'",
-                "method.response.header.Access-Control-Allow-Credentials": "'false'",
-                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE'"
-              },
-              "StatusCode": "200"
-            }
-          ],
-          "PassthroughBehavior": "NEVER",
-          "RequestTemplates": {
-            "application/json": "{\"statusCode\": 200}"
-          },
-          "Type": "MOCK"
-        },
-        "MethodResponses": [
-          {
-            "ResponseParameters": {
-              "method.response.header.Access-Control-Allow-Headers": true,
-              "method.response.header.Access-Control-Allow-Methods": true,
-              "method.response.header.Access-Control-Allow-Credentials": true,
-              "method.response.header.Access-Control-Allow-Origin": true
-            },
-            "StatusCode": "200"
-          }
-        ],
-        "ResourceId": {
-          "Ref": "ItemsApiDefaultCategoriesid"
-        },
-        "RestApiId": {
-          "Ref": "ItemsApi"
-        }
-      }
     }
   },
   "Outputs": {
     "ItemsApiEndpoint": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "ItemsApi"
+            },
+            ".execute-api.",
+            {
+              "Ref": "AWS::Region"
+            },
+            ".",
+            {
+              "Ref": "AWS::URLSuffix"
+            },
+            "/",
+            {
+              "Ref": "ItemsApiDeploymentStageprod"
+            },
+            "/"
+          ]
+        ]
+      }
+    },
+    "UserPoolId": {
+      "Description": "The ID of the Cognito User Pool",
+      "Value": {
+        "Ref": "MusaUserPool"
+      }
+    },
+    "UserPoolClientId": {
+      "Description": "The ID of the Cognito User Pool Client",
+      "Value": {
+        "Ref": "MusaUserPoolClient"
+      }
+    },
+    "Region": {
+      "Description": "The region the stack is deployed to",
+      "Value": {
+        "Ref": "AWS::Region"
+      }
+    },
+    "ApiUrl": {
+      "Description": "The URL of the API Gateway",
       "Value": {
         "Fn::Join": [
           "",
