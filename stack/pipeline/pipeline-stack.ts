@@ -63,7 +63,7 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
     // CodeBuild Projects for Device
     const codeBuildDevice = new PipelineProject(this, 'CodeBuildDevice', {
       environment: {
-        buildImage: LinuxBuildImage.STANDARD_6_0,
+        buildImage: LinuxBuildImage.STANDARD_7_0,
         computeType: ComputeType.SMALL
       },
       role: pipelineRole,
@@ -75,7 +75,7 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
     // CodeBuild Project for Deploy
     const codeBuildDeploy = new PipelineProject(this, 'CodeBuildDeploy', {
       environment: {
-        buildImage: LinuxBuildImage.STANDARD_6_0,
+        buildImage: LinuxBuildImage.STANDARD_7_0,
         computeType: ComputeType.SMALL
       },
       role: pipelineRole,
