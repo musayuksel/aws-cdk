@@ -149,8 +149,8 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
       actionName: 'ApproveDeploy'
     })
 
-    const deployTestAction = new CodeBuildAction({
-      actionName: 'DeployTest',
+    const deployToTestAction = new CodeBuildAction({
+      actionName: 'DeployToTest',
       project: codeBuildDeploy,
       input: sourceOutput,
       //   outputs: [testBuildOutput],
@@ -180,7 +180,7 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
         },
         {
           stageName: 'Deploy',
-          actions: [deployTestAction]
+          actions: [deployToTestAction]
         }
       ]
     })
