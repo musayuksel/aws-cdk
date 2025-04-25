@@ -69,29 +69,7 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
       role: pipelineRole,
       timeout: cdk.Duration.minutes(5),
       description: 'Builds the device code',
-      //   buildSpec: BuildSpec.fromSourceFilename('stack/pipeline/sctripts/buildspec.yml'),
-      buildSpec: BuildSpec.fromObject({
-        version: '0.2',
-        phases: {
-          install: {
-            commands: [
-              'npm install',
-              'npm install -g aws-cdk'
-            ]
-          },
-          build: {
-            commands: [
-              'npm run build',
-              'npm test',
-              'cdk synth'
-            ]
-          }
-        },
-        artifacts: {
-          'base-directory': 'out',
-          files: ['**/*']
-        }
-      })
+      buildSpec: BuildSpec.fromSourceFilename('stack/sctripts/buildspec-device.yml')
     })
 
     // CodeBuild Project for Deploy
@@ -102,26 +80,7 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
       },
       role: pipelineRole,
       timeout: cdk.Duration.minutes(5),
-      buildSpec: BuildSpec.fromObject({
-        version: '0.2',
-        phases: {
-          install: {
-            commands: [
-              'npm install',
-              'npm install -g aws-cdk'
-            ]
-          },
-          build: {
-            commands: [
-              'npm run build',
-              'ls -la', // To see the file structure
-              'cat cdk.json', // To verify the cdk.json content
-              `cdk deploy ${apiStackName} --app "npx ts-node --prefer-ts-exts ./stack/app.ts" --require-approval never`
-
-            ]
-          }
-        }
-      })
+      buildSpec: BuildSpec.fromSourceFilename('stack/scripts/buildspec-deploy.yml')
     })
 
     // Artifacts for the pipeline
@@ -158,7 +117,7 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
       input: sourceOutput,
       //   outputs: [testBuildOutput],
       environmentVariables: {
-        DEVICE: { value: 'TEST' }
+        API_STACK_NAME: { value: apiStackName }
       }
     })
 

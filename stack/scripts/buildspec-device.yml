@@ -1,0 +1,19 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Installing dependencies..........."
+      - echo "Node version.....:$(node -v)"
+      - echo "NPM version......:$(npm -v)"
+      - npm install
+      - npm install -g aws-cdk
+  build:
+    commands:
+      - npm run build
+      - npm test
+      - cdk synth
+artifacts:
+  base-directory: "out"
+  files:
+    - "**/*"
