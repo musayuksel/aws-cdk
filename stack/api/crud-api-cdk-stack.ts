@@ -86,7 +86,7 @@ export class MusaApiLambdaCrudDynamoDBStack extends Stack {
 
         ]
       },
-      depsLockFilePath: join(__dirname, '../', 'package-lock.json'),
+      depsLockFilePath: join(__dirname, '../../', 'package-lock.json'),
       environment: {
         PRIMARY_KEY: 'itemId',
         TABLE_NAME: dynamoTable.tableName,
@@ -98,18 +98,18 @@ export class MusaApiLambdaCrudDynamoDBStack extends Stack {
 
     // Create a Lambda function for each of the CRUD operations
     const getAllCategoriesLambda = new NodejsFunction(this, 'getAllItemsFunction', {
-      entry: join(__dirname, '../src', 'index.ts'),
+      entry: join(__dirname, '../../src', 'index.ts'),
       handler: 'getCategoriesHandler',
       ...nodeJsFunctionProps
     })
     const getExamQuestionsLambda = new NodejsFunction(this, 'getExamQuestionsFunction', {
-      entry: join(__dirname, '../src', 'index.ts'),
+      entry: join(__dirname, '../../src', 'index.ts'),
       handler: 'getExamQuestionsHandler',
       ...nodeJsFunctionProps
     })
 
     const postCategoryLambda = new NodejsFunction(this, 'postCategoryFunction', {
-      entry: join(__dirname, '../src', 'index.ts'),
+      entry: join(__dirname, '../../src', 'index.ts'),
       handler: 'postCategoryHandler',
       ...nodeJsFunctionProps
     })
