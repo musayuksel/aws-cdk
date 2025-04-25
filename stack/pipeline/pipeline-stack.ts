@@ -69,7 +69,7 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
       role: pipelineRole,
       timeout: cdk.Duration.minutes(5),
       description: 'Builds the device code',
-      buildSpec: BuildSpec.fromSourceFilename('stack/sctripts/buildspec-device.yml')
+      buildSpec: BuildSpec.fromSourceFilename('stack/scripts/buildspec-device.yml')
     })
 
     // CodeBuild Project for Deploy
