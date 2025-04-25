@@ -5,7 +5,6 @@ This project implements a serverless API using AWS Lambda, API Gateway, DynamoDB
 ## Architecture Diagram
 
 <img src="docs/architecture_diagram.svg" alt="Architecture Diagram" width="1000" />
-<img src="docs/architecture_diagram.png" alt="Architecture Diagram" width="1000" />
 
 This project consists of two main stacks:
 
