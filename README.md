@@ -104,7 +104,13 @@ For development purposes, you can approve pipelines locally using:
 npm run approve-pipelines
 ```
 
-This uses the script at `./stack/scripts/local-approve-pipelines.sh` to approve pipeline executions.
+This uses the script at **[local-approve-pipelines.sh](./stack/scripts/local-approve-pipelines.sh)** to approve pipeline executions.
+
+> **Note**: On the first run, you may need to make the script executable by running:
+
+```bash
+chmod +x stack/scripts/local-approve-pipelines.sh
+```
 
 ## Notes
 
