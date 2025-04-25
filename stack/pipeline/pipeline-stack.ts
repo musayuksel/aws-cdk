@@ -152,7 +152,7 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
     const deployTestAction = new CodeBuildAction({
       actionName: 'DeployTest',
       project: codeBuildDeploy,
-      input: buildOutput,
+      input: sourceOutput,
       //   outputs: [testBuildOutput],
       environmentVariables: {
         DEVICE: { value: 'TEST' }
