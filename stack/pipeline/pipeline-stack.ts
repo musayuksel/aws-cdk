@@ -101,16 +101,21 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
       timeout: cdk.Duration.minutes(5),
       buildSpec: BuildSpec.fromObject({
         version: '0.2',
-        description: 'Deploys the device',
         phases: {
-          build: {
+          install: {
             commands: [
-              'npm install -g aws-cdk',
-              `cdk deploy ${props?.apiStackName} --require-approval never`
+              'npm install',
+              'npm install -g aws-cdk'
             ]
           },
-          post_build: {
-            commands: ['echo ">>>>>>> Build completed!!!"']
+          build: {
+            commands: [
+              'npm run build',
+              'ls -la', // To see the file structure
+              'cat cdk.json', // To verify the cdk.json content
+              `cdk deploy ${props?.apiStackName} --app "npx ts-node --prefer-ts-exts ./stack/app.ts" --require-approval never`
+
+            ]
           }
         }
       })
