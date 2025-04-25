@@ -19,8 +19,10 @@ export interface PipelineStackProps extends cdk.StackProps {
 }
 
 export class MusaCrudApiPipelineStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: PipelineStackProps) {
+  constructor(scope: Construct, id: string, props: PipelineStackProps) {
     super(scope, id, props)
+
+    const { repositoryOwner, repositoryName, branchName, connectionArn, apiStackName } = props
 
     // S3 Bucket for pipeline artifacts
     const mockS3Bucket = new Bucket(this, 'MockS3Bucket', {
@@ -114,7 +116,7 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
               'npm run build',
               'ls -la', // To see the file structure
               'cat cdk.json', // To verify the cdk.json content
-              `cdk deploy ${props?.apiStackName} --app "npx ts-node --prefer-ts-exts ./stack/app.ts" --require-approval never`
+              `cdk deploy ${apiStackName} --app "npx ts-node --prefer-ts-exts ./stack/app.ts" --require-approval never`
 
             ]
           }
@@ -129,10 +131,10 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
     // CodePipeline Actions
     const sourceAction = new CodeStarConnectionsSourceAction({
       actionName: 'SourceFromGitHub',
-      owner: 'musayuksel',
-      repo: props?.repositoryName || 'aws-cdk',
-      branch: 'pipeline-setup',
-      connectionArn: 'arn:aws:codeconnections:eu-west-1:749144762306:connection/eb9218a5-7ef1-4bde-b7d2-15c98a33ec2d', //cdk.Fn.importValue('CodeConnectionArn'),
+      owner: repositoryOwner,
+      repo: repositoryName,
+      branch: branchName,
+      connectionArn: connectionArn,
       output: sourceOutput
     })
 
