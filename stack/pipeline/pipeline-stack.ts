@@ -122,8 +122,8 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
     })
 
     // CodePipeline
-    new Pipeline(this, 'MusaApiLambdaCrudDynamoDBPipeline', {
-      pipelineName: 'MusaApiLambdaCrudDynamoDBPipeline',
+    new Pipeline(this, 'MusaCrudApiPipeline', {
+      pipelineName: 'MusaCrudApiPipeline',
       artifactBucket: mockS3Bucket,
       role: pipelineRole,
       restartExecutionOnUpdate: true,

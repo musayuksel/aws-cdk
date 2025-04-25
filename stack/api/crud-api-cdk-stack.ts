@@ -16,7 +16,7 @@ import { join } from 'path'
 import { IConstruct } from 'constructs'
 import { AccountRecovery, UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito'
 
-export class MusaApiLambdaCrudDynamoDBStack extends Stack {
+export class MusaCrudApiStack extends Stack {
   constructor(app: App, id: string) {
     super(app, id)
 
