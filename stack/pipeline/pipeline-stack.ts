@@ -85,7 +85,7 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
           }
         },
         artifacts: {
-          'base-directory': 'cdk.out',
+          'base-directory': 'out',
           files: ['**/*']
         }
       })
@@ -124,7 +124,7 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
     const sourceAction = new CodeStarConnectionsSourceAction({
       actionName: 'SourceFromGitHub',
       owner: 'musayuksel',
-      repo: 'aws',
+      repo: props?.repositoryName || 'aws-cdk',
       branch: 'pipeline-setup',
       connectionArn: 'arn:aws:codeconnections:eu-west-1:749144762306:connection/eb9218a5-7ef1-4bde-b7d2-15c98a33ec2d', //cdk.Fn.importValue('CodeConnectionArn'),
       output: sourceOutput
