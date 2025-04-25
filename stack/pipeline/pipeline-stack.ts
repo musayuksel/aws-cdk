@@ -51,7 +51,8 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
           'lambda:*',
           'apigateway:*',
           'cognito-idp:*',
-          'dynamodb:*'
+          'dynamodb:*',
+          'ssm:GetParameter'
         ],
         resources: ['*']
       })
@@ -160,8 +161,8 @@ export class MusaCrudApiPipelineStack extends cdk.Stack {
     })
 
     // CodePipeline
-    new Pipeline(this, 'LevellingGuide1BPipeline', {
-      pipelineName: 'MusaLevellingGuide1BPipeline',
+    new Pipeline(this, 'MusaApiLambdaCrudDynamoDBPipeline', {
+      pipelineName: 'MusaApiLambdaCrudDynamoDBPipeline',
       artifactBucket: mockS3Bucket,
       role: pipelineRole,
       restartExecutionOnUpdate: true,
