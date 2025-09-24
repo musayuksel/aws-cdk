@@ -42,7 +42,7 @@ npm run test
 The CI/CD pipeline **must be deployed manually once**:
 
 ```bash
-cdk deploy MusaApiPipelineStack
+cdk deploy MusaCrudApiPipelineStack
 ```
 
 After this, any changes pushed to the `main` branch will trigger the pipeline to deploy the Lambda API stack.
